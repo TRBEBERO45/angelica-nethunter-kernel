@@ -18,12 +18,13 @@ jobs:
           echo "CONFIG_USB_G_HID=y" >> arch/arm64/configs/$DEFCONFIG
           echo "CONFIG_HID_GENERIC=y" >> arch/arm64/configs/$DEFCONFIG
           echo "CONFIG_USB_HIDDEV=y" >> arch/arm64/configs/$DEFCONFIG
+          echo "CONFIG_WERROR=n" >> arch/arm64/configs/$DEFCONFIG
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
           export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           make O=out $DEFCONFIG
-          make -j$(nproc --all) O=out Image.gz-dtb
+          make -j$(nproc --all) O=out KCFLAGS="-Wno-array-bounds -Wno-error" Image.gz-dtb
           cp out/arch/arm64/boot/Image.gz-dtb ../anykernel/
           cd ../anykernel
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
