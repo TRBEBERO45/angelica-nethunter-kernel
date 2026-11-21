@@ -13,18 +13,20 @@ jobs:
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git anykernel
           cd kernel
           patch -p1 < ../nh-patches/4.19/add-hid-gadget-4.19.patch || true
+          sed -i 's/-Werror//g' Makefile
+          sed -i 's/static void free(/static void xts_free(/g' crypto/xts.c
+          sed -i 's/\.free\s*=\s*free,/\.free = xts_free,/g' crypto/xts.c
           DEFCONFIG=$(find arch/arm64/configs -name "*angelica*defconfig" | head -n 1 | xargs basename)
           echo "CONFIG_USB_CONFIGFS_F_HID=y" >> arch/arm64/configs/$DEFCONFIG
           echo "CONFIG_USB_G_HID=y" >> arch/arm64/configs/$DEFCONFIG
           echo "CONFIG_HID_GENERIC=y" >> arch/arm64/configs/$DEFCONFIG
           echo "CONFIG_USB_HIDDEV=y" >> arch/arm64/configs/$DEFCONFIG
-          echo "CONFIG_WERROR=n" >> arch/arm64/configs/$DEFCONFIG
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
           export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           make O=out $DEFCONFIG
-          make -j$(nproc --all) O=out KCFLAGS="-Wno-array-bounds -Wno-error" Image.gz-dtb
+          make -j$(nproc --all) O=out Image.gz-dtb
           cp out/arch/arm64/boot/Image.gz-dtb ../anykernel/
           cd ../anykernel
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
